@@ -108,7 +108,7 @@ public class UserServlet extends HttpServlet {
             request.setAttribute("users",userList);
 
             // JSP로 전달하기
-            request.getRequestDispatcher("/WEB-INF/jsp/userList.jsp").forward(request,response);
+            request.getRequestDispatcher("/WEB-INF/jsp/userList.jsp").forward(request, response);
 
             // 결과 출력 또는 jsp 파일로 전달하기
         } catch (ClassNotFoundException e) {
