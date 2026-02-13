@@ -8,10 +8,9 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * doPost doGet 을 이용해서 JDBC 연결
@@ -24,6 +23,7 @@ public class UserServlet extends HttpServlet {
     private static final String DB_USER = "application.properties 나 config.properties 에 작성한 user 넣어주기";
     private static final String DB_PASSWORD = "application.properties 나 config.properties 에 작성한 password 넣어주기";
 
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
@@ -68,5 +68,54 @@ public class UserServlet extends HttpServlet {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("text/html;charset=UTF-8");
+        PrintWriter out = response.getWriter();
+
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        List<User> userList = new ArrayList<>();
+
+
+        try {
+            // JDBC 자바와 데이터베이스 어떤 드라이버로 연결할 것인가. 선택
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            // DB 연결
+            conn = DriverManager.getConnection(DB_URL,DB_USER,DB_PASSWORD);
+
+            // SQL 작성
+            String sql = "SELECT * FROM users";
+            pstmt = conn.prepareStatement(sql);
+
+            // 실행
+            rs = pstmt.executeQuery();
+
+            // 결과를 List 담기
+            while(rs.next()) {
+                User u = new User();
+                u.setId(rs.getLong("id"));
+                u.setName(rs.getString("name"));
+                u.setEmail(rs.getString("email"));
+                userList.add(u);
+            }
+
+            // request 에 데이터 담기
+            request.setAttribute("users",userList);
+
+            // JSP로 전달하기
+            request.getRequestDispatcher("/WEB-INF/jsp/userList.jsp").forward(request,response);
+
+            // 결과 출력 또는 jsp 파일로 전달하기
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }
